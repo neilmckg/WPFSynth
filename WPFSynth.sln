@@ -1,0 +1,40 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.26228.9
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Synth.Core", "Synth.Core\Synth.Core.csproj", "{100E1DB0-B629-435A-9522-7FD6434F137A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Synth.NAudio", "Synth.NAudio\Synth.NAudio.csproj", "{A6318CA1-95E4-463E-A0A9-5FE40AC378A9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Synth.WPF", "Synth.WPF\Synth.WPF.csproj", "{0B0598DE-FE41-452D-83C6-0E78BDA4453B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Synth.WPF.Demo", "Synth.WPF.Demo\Synth.WPF.Demo.csproj", "{FF35CCD7-9109-4583-AFAA-5D02AC135FAF}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{100E1DB0-B629-435A-9522-7FD6434F137A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{100E1DB0-B629-435A-9522-7FD6434F137A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{100E1DB0-B629-435A-9522-7FD6434F137A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{100E1DB0-B629-435A-9522-7FD6434F137A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A6318CA1-95E4-463E-A0A9-5FE40AC378A9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A6318CA1-95E4-463E-A0A9-5FE40AC378A9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A6318CA1-95E4-463E-A0A9-5FE40AC378A9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A6318CA1-95E4-463E-A0A9-5FE40AC378A9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0B0598DE-FE41-452D-83C6-0E78BDA4453B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0B0598DE-FE41-452D-83C6-0E78BDA4453B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0B0598DE-FE41-452D-83C6-0E78BDA4453B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0B0598DE-FE41-452D-83C6-0E78BDA4453B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FF35CCD7-9109-4583-AFAA-5D02AC135FAF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FF35CCD7-9109-4583-AFAA-5D02AC135FAF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FF35CCD7-9109-4583-AFAA-5D02AC135FAF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FF35CCD7-9109-4583-AFAA-5D02AC135FAF}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

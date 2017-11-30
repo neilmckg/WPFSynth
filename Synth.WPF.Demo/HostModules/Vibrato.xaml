@@ -1,0 +1,161 @@
+﻿<modules:HostModule x:Class="Synth.WPF.Demo.HostModules.Vibrato"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:Synth.WPF.Demo.HostModules"
+             xmlns:modules="clr-namespace:Synth.WPF.Modules;assembly=Synth.WPF"
+             xmlns:child="clr-namespace:Synth.WPF.ModuleChildren;assembly=Synth.WPF"
+             xmlns:controls="clr-namespace:Synth.WPF.Controls;assembly=Synth.WPF"
+             xmlns:converters="clr-namespace:Synth.WPF.Converters;assembly=Synth.WPF"
+             xmlns:util="clr-namespace:Synth.WPF.Util;assembly=Synth.WPF"
+             xmlns:synth="clr-namespace:Synth.WPF;assembly=Synth.WPF"
+             mc:Ignorable="d">
+
+    <modules:HostModule.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/Synth.WPF;component/Resources.xaml"/>
+            </ResourceDictionary.MergedDictionaries>        
+        </ResourceDictionary>
+    </modules:HostModule.Resources>
+    
+    <modules:HostModule.InputTemplate>
+        <DataTemplate>
+            <GroupBox Style="{x:Static synth:Resources.ModuleBoxStyle}">
+                <Grid HorizontalAlignment="Center">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <Grid Grid.Row="0" MinWidth="100" Margin="0,0,0,6">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Foreground="{x:Static synth:Resources.ForegroundBrush}" Text="Vol" VerticalAlignment="Center"/>
+                        <controls:MeteredSlider Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="4,0"
+                                             Style="{x:Static synth:Resources.ControlSliderStyle}"
+                                             IsEnabled="{Binding Converter={x:Static converters:IsPropertyBoundToBooleanConverter.FalseIfBound}, ConverterParameter={x:Static local:Vibrato.PitchToVolumeBalanceProperty}}"
+                                        Value="{Binding Path=PitchToVolumeBalance}"
+                                        Minimum="{x:Static local:Vibrato.MinimumPitchToVolumeBalance}" Maximum="{x:Static local:Vibrato.MaximumPitchToVolumeBalance}"
+                        />
+                        <TextBlock Grid.Column="2" Foreground="{x:Static synth:Resources.ForegroundBrush}" Text="Pitch" VerticalAlignment="Center"/>
+                    </Grid>
+
+                    <Grid Grid.Row="1" HorizontalAlignment="Center">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <GroupBox Grid.Column="0" Header="Delay" Style="{x:Static synth:Resources.InputColumnGroupBoxStyle}" Margin="0,0,5,0"
+                                      IsEnabled="{Binding Converter={x:Static converters:IsPropertyBoundToBooleanConverter.FalseIfBound}, ConverterParameter={x:Static local:Vibrato.DelaySecondsProperty}}">
+                            <controls:MeteredSlider Style="{x:Static synth:Resources.ControlSliderStyle}"
+                                            Value="{Binding Path=DelaySeconds}" ScaleFactor="2"
+                                            Minimum="{x:Static local:Vibrato.MinimumDelaySeconds}" Maximum="{x:Static local:Vibrato.MaximumDelaySeconds}">
+                                <controls:SliderTick Value="10" Label="10s"/>
+                                <controls:SliderTick Value="9" Label=""/>
+                                <controls:SliderTick Value="8" Label=""/>
+                                <controls:SliderTick Value="7" Label=""/>
+                                <controls:SliderTick Value="6" Label=""/>
+                                <controls:SliderTick Value="5" Label=""/>
+                                <controls:SliderTick Value="4" Label=""/>
+                                <controls:SliderTick Value="3" Label=""/>
+                                <controls:SliderTick Value="2" Label=""/>
+                                <controls:SliderTick Value="1" Label=""/>
+                                <controls:SliderTick Value="0" Label="None"/>
+                            </controls:MeteredSlider>
+                        </GroupBox>
+
+                        <GroupBox Grid.Column="1" Header="Amount" Style="{x:Static synth:Resources.InputColumnGroupBoxStyle}" Margin="0,0,0,0"
+                                      IsEnabled="{Binding Converter={x:Static converters:IsPropertyBoundToBooleanConverter.FalseIfBound}, ConverterParameter={x:Static local:Vibrato.AmountProperty}}">
+                            <controls:MeteredSlider Style="{x:Static synth:Resources.ControlSliderStyle}"
+                                        Value="{Binding Path=Amount}"
+                                        Minimum="{x:Static local:Vibrato.MinimumAmount}" Maximum="{x:Static local:Vibrato.MaximumAmount}" ScaleFactor="2"
+                                        TicksSource="{x:Static synth:Resources.StandardLevelTicks}"/>
+                        </GroupBox>
+
+                        <GroupBox Grid.Column="2" Header="Rate" Style="{x:Static synth:Resources.InputColumnGroupBoxStyle}" Margin="0,0,5,0"
+                                           IsEnabled="{Binding Converter={x:Static converters:IsPropertyBoundToBooleanConverter.FalseIfBound}, ConverterParameter={x:Static local:Vibrato.RateProperty}}">
+                            <controls:MeteredSlider Style="{x:Static synth:Resources.ControlSliderStyle}"
+                                            Value="{Binding Path=Rate}"
+                                            Maximum="10" Minimum="1">
+                                <controls:SliderTick Value="10" Label="10 hz"/>
+                                <controls:SliderTick Value="9" Label=""/>
+                                <controls:SliderTick Value="8" Label=""/>
+                                <controls:SliderTick Value="7" Label=""/>
+                                <controls:SliderTick Value="6" Label=""/>
+                                <controls:SliderTick Value="5" Label="5 hz"/>
+                                <controls:SliderTick Value="4" Label=""/>
+                                <controls:SliderTick Value="3" Label=""/>
+                                <controls:SliderTick Value="2" Label=""/>
+                                <controls:SliderTick Value="1" Label="1 hz"/>
+                            </controls:MeteredSlider>
+                        </GroupBox>
+                    </Grid>
+                </Grid>
+            </GroupBox>
+        </DataTemplate>
+    </modules:HostModule.InputTemplate>
+
+    <StackPanel Orientation="Horizontal">
+        
+        <modules:Envelope x:Name="Env" Trigger="{Binding Trigger}" util:AttachedProperties.IsVerbose="True">
+            <modules:Envelope.Attack>
+                <child:Step TargetValue="0" Seconds="{Binding DelaySeconds}"/>
+                <child:Step TargetValue="1" Seconds="{Binding DelaySeconds, Converter={x:Static converters:MathConverter.Multiply}, ConverterParameter=0.25}"/>
+            </modules:Envelope.Attack>
+            <modules:Envelope.Release>
+                <child:Step TargetValue="0" Seconds="0.5"/>
+            </modules:Envelope.Release>
+        </modules:Envelope>
+
+        <modules:Translate x:Name="RateScaler" Description="Dynamic Rate" SourceValue="{Binding Rate}" Scale="{Binding ElementName=Env, Path=Value}" util:AttachedProperties.IsVerbose="True"/>
+        
+        <modules:LFO x:Name="LFO" Amount="{Binding ElementName=Env, Path=Value}" Frequency="{Binding ElementName=RateScaler, Path=Value}" util:AttachedProperties.IsVerbose="True"/>
+        
+        <!--
+        this scales the LFO for pitch, based on the balance param
+        <Scale Id="LFOBalancedForPitch" Input="LFO.Output">
+            <Wire Input="Amount" Source="Host.PitchToVolumeBalance" Transform="Scale(-0.5), Offset(0.5)"/>
+        </Scale>
+
+        this scales the LFO for volume, based on the balance param
+        <Scale Id="LFOBalancedForVolume" Input="LFO.Output">
+            <Wire Input="Amount" Source="Host.PitchToVolumeBalance" Transform="Scale(0.5), Offset(0.5)"/>
+        </Scale>
+        -->
+        
+        <!--this applies the lfo to the pitch input by scaling it to 0.004 and then using it to offset the pitch input
+        <Offset Id="ModulatedPitch" Input="Host.Pitch">
+            <Wire Input="Amount" Source="LFOBalancedForPitch.Output" Transform="Scale(0.004)"/>
+        </Offset>-->
+
+        <modules:Translate x:Name="ModulatedPitch" Description="Pitch Shifter" 
+                           SourceValue ="{Binding ElementName=LFO, Path=Value, Converter={x:Static converters:MathConverter.Multiply}, ConverterParameter=0.004}" 
+                           Center="{Binding PitchIn}" 
+                           Scale="{Binding Amount}" util:AttachedProperties.IsVerbose="True"/>
+
+
+        <!--this applies the lfo to the volume input by scaling it to 0.4 and then adding 1 to it, and multiplying it by the volume input.
+        We're currently not supporting multiplication, so try 2 translates, one to get the LFO Into the right range, and the other to use it to scale the volume in
+        <Scale Id="ModulatedVolume" Input="Host.Volume">
+            <Wire Input="Amount" Source="LFOBalancedForVolume.Output" Transform="Offset(1), Scale(0.4)"/>
+        </Scale>-->
+
+        <!--<modules:Translate Name="ModulatedVolume" 
+                           SourceValue ="{Binding ElementName=LFO, Path=Value}" Center="{Binding ElementName=VibratoRoot, Path=PitchIn}" Scale="0.4"
+                           Value="{Binding ElementName=VibratoRoot, Path=PitchOut, Mode=OneWayToSource}"/>-->
+
+        <controls:BindingInterconnect ValueIn="{Binding ElementName=ModulatedPitch, Path=Value}" ValueOut="{Binding PitchOut, Mode=OneWayToSource}"/>
+        <!--currently just passes through but, ultimately, the input will be from ModulatedVolume-->
+        <controls:BindingInterconnect ValueIn="{Binding VolumeIn}" ValueOut="{Binding VolumeOut, Mode=OneWayToSource}"/>
+        <controls:BindingInterconnect ValueIn="{Binding ElementName=LFO, Path=Value}" ValueOut="{Binding LfoOut, Mode=OneWayToSource}"/>
+
+    </StackPanel>
+
+</modules:HostModule>

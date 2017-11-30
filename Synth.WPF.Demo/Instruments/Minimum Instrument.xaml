@@ -1,0 +1,20 @@
+﻿<instrument:MonoSimpleInstrument x:Class="Synth.WPF.Demo.Instruments.MinimumInstrument"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:module="clr-namespace:Synth.WPF.Modules;assembly=Synth.WPF"
+             xmlns:util="clr-namespace:Synth.WPF.Util;assembly=Synth.WPF"
+             xmlns:instrument="clr-namespace:Synth.WPF.Instrument;assembly=Synth.WPF"
+             mc:Ignorable="d"
+             d:DesignWidth="500"
+             util:AttachedProperties.IsVerbose="True"
+             VelocityLabel="Volume"
+             x:Name="Root">
+
+        <module:Oscillator Name="Osc" Description="Main Tone" 
+                Pitch="{Binding Pitch, ElementName=Root}"
+                Level="{Binding Intensity, ElementName=Root}"/>
+
+</instrument:MonoSimpleInstrument>
+

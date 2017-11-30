@@ -1,0 +1,102 @@
+﻿<instrument:MonoSimpleInstrument x:Class="Synth.WPF.Instrument.DefaultInstrument"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:synth="clr-namespace:Synth.Core;assembly=Synth.Core"
+             xmlns:conv="clr-namespace:Synth.WPF.Converters"
+             xmlns:module="clr-namespace:Synth.WPF.Modules"
+             xmlns:child="clr-namespace:Synth.WPF.ModuleChildren"
+             xmlns:instrument="clr-namespace:Synth.WPF.Instrument"
+             xmlns:wpf="clr-namespace:Synth.WPF"
+             mc:Ignorable="d"
+             d:DesignWidth="1000"
+             Level="0.5"
+             x:Name="Root"
+             VelocityLabel="Intensity"
+             SustainLabel ="Hold &amp; Glide">
+    
+    <module:Glide x:Name="SmoothedPitch" Rate="0.8"
+            SourceValue="{Binding Pitch, ElementName=Root}"
+            IsActive="{Binding Intensity, Converter={x:Static conv:ValueToTriggerConverter.TriggerWhenNotEqual}, ConverterParameter=0}"/>
+
+    <module:Envelope x:Name="VibratoEnv" Description="LFO Envelope" Style="{x:Static wpf:Resources.VerboseOnlyStyle}"
+            Trigger="{Binding Intensity, ElementName=Root, Converter={x:Static conv:ValueToTriggerConverter.TriggerWhenNotEqual}, ConverterParameter=0}">
+        <module:Envelope.Attack>
+            <child:Step TargetValue="0" Seconds="0.7"/>
+            <child:Step TargetValue="1" Seconds="0.2"/>
+        </module:Envelope.Attack>
+        <module:Envelope.Release>
+            <child:Step TargetValue="0" Seconds="0.5"/>
+        </module:Envelope.Release>
+    </module:Envelope>
+
+    <module:Translate x:Name="VibratoRateScaler" Description="LFO Rate Scaler"
+            Style="{x:Static wpf:Resources.VerboseOnlyStyle}"
+            SourceValue="{Binding ElementName=VibratoEnv, Path=Value}" 
+            Scale="5"/>
+
+    <module:LFO x:Name="LFO"
+            Style="{x:Static wpf:Resources.VerboseOnlyStyle}"
+            Amount="{Binding ElementName=VibratoEnv, Path=Value}"
+            Frequency="{Binding ElementName=VibratoRateScaler, Path=Value}"/>
+
+    <module:Translate x:Name="VibratoPitch" Description="LFO Pitch Scaler"
+            Style="{x:Static wpf:Resources.VerboseOnlyStyle}"
+            SourceValue ="{Binding ElementName=LFO, Path=Value, Converter={x:Static conv:MathConverter.Multiply}, ConverterParameter=0.004}" 
+            Center="{Binding Value, ElementName=SmoothedPitch}"
+            Scale="{Binding ModulationAmount, ElementName=Root}"/>
+
+    <module:Oscillator x:Name="Osc1" Description="Osc 1"
+            Wave="{x:Static synth:Wave.Triangle}"
+            Pitch="{Binding Value, ElementName=VibratoPitch}"/>
+
+    <module:Oscillator x:Name="Osc2" Description="Osc 2" 
+            PitchOffsetHalfSteps="-24"
+            Level="0.2"
+            Wave="{x:Static synth:Wave.Sawtooth}"
+            Pitch="{Binding Value, ElementName=SmoothedPitch}"/>
+
+    <module:LowPassFilter x:Name="Filt" Description="Osc 2 Filter"
+            Input="{Binding Output, ElementName=Osc2}"
+            CutoffPitch="0.7" Resonance="0.1"/>
+
+    <module:Pan x:Name="Pan" Description="Osc 2 Pan"
+            Style="{x:Static wpf:Resources.VerboseOnlyStyle}"
+            Input="{Binding Output, ElementName=Filt}"
+            Position="-0.5"/>
+
+    <module:Envelope x:Name="Env" Description="Volume Envelope"
+            Trigger="{Binding Intensity, Converter={x:Static conv:ValueToTriggerConverter.TriggerWhenNotEqual}, ConverterParameter=0}">
+        <module:Envelope.Attack>
+            <child:Step Seconds="0.15" TargetValue="1"/>
+            <child:Step Seconds="0.2" TargetValue="0.6"/>
+        </module:Envelope.Attack>
+        <module:Envelope.Release>
+            <child:Step Seconds="0.3" TargetValue="0"/>
+        </module:Envelope.Release>
+    </module:Envelope>
+
+    <module:Mixer x:Name="Mix"
+            MasterLevel="{Binding Value, ElementName=Env}">
+        <child:Channel Input="{Binding Output, ElementName=Osc1}"/>
+        <child:Channel Input="{Binding Output, ElementName=Pan}"/>
+    </module:Mixer>
+
+    <module:Echo x:Name="Echo" Description="Echo"
+            Input="{Binding Output, ElementName=Mix}"
+            Seconds="0.5"
+            Level="0.25"
+            Feedback="0.25"/>
+
+    <module:Pan x:Name="EchoPan" Description="Echo Pan"
+            Input="{Binding Output, ElementName=Echo}"
+            Spread="1" 
+            Position="0.3"
+            Style="{x:Static wpf:Resources.VerboseOnlyStyle}"/>
+
+    <module:Mixer x:Name="FinalMix">
+        <child:Channel Input="{Binding Output, ElementName=EchoPan}"/>
+        <child:Channel Input="{Binding Output, ElementName=Mix}"/>
+    </module:Mixer>
+</instrument:MonoSimpleInstrument>

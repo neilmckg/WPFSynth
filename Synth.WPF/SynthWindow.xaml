@@ -1,0 +1,84 @@
+﻿<Window x:Class="Synth.WPF.SynthWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="clr-namespace:Synth.WPF.Controls"
+        xmlns:converters="clr-namespace:Synth.WPF.Converters"
+        xmlns:synth="clr-namespace:Synth.WPF"
+        Title="Synth.WPF"
+        SizeToContent="Height"
+        MinWidth="600"
+        Name="WindowRoot"
+        Width="1000"
+        MouseDoubleClick="HandleDoubleClick"
+        Background="{x:Static synth:Resources.SynthWindowBrush}">
+    
+    <Window.Resources>
+        <Style TargetType="TextBlock" BasedOn="{x:Static synth:Resources.DefaultTextStyle}"/>
+        <Style TargetType="TextBox" BasedOn="{x:Static synth:Resources.DefaultTextStyle}"/>
+        <Style TargetType="Button" BasedOn="{x:Static synth:Resources.DefaultTextStyle}"/>
+        <Style TargetType="CheckBox" BasedOn="{x:Static synth:Resources.DefaultTextStyle}"/>
+        <Style TargetType="ListBox" BasedOn="{x:Static synth:Resources.DefaultTextStyle}"/>
+        <Style TargetType="ComboBox" BasedOn="{x:Static synth:Resources.DefaultTextStyle}"/>
+    </Window.Resources>
+
+    <Window.ContentTemplate>
+        <DataTemplate>
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="6"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Grid Grid.Row="1" Grid.ColumnSpan="99" Margin="0,-2,0,-4"
+                            Visibility ="{Binding ElementName=WindowRoot, Path=IsHeaderVisible, Converter={x:Static converters:ValueToVisibilityConverter.CollapsedWhenNotEqual}, ConverterParameter=True}">
+                    <Border HorizontalAlignment="Center" VerticalAlignment="Center" Style="{x:Static synth:Resources.MouseOverEmphasisStyle}">
+                        <ComboBox Foreground="{x:Static synth:Resources.ForegroundBrush}" FontWeight="Bold" FontSize="18" Background="Transparent"
+                                        Template="{x:Static synth:Resources.SimpleComboBoxTemplate}"
+                                        ItemsSource="{Binding ElementName = WindowRoot, Path=Instruments}" DisplayMemberPath="Name"
+                                        SelectedItem ="{Binding ElementName=WindowRoot, Path=CurrentInstrument}" 
+                                        Width="300" HorizontalContentAlignment="Center" Cursor="Hand"
+                                        IsEnabled="{Binding ElementName=WindowRoot, Path=Instruments.Count, Converter={x:Static converters:ValueToTriggerConverter.TriggerWhenNotEqual}, ConverterParameter=1}">
+                                <ComboBox.Style>
+                                    <Style TargetType="ComboBox">
+                                        <Style.Triggers>
+                                            <Trigger Property="IsDropDownOpen" Value="True">
+                                                <Setter Property="Effect" Value="{x:Null}"/>
+                                            </Trigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </ComboBox.Style>
+                            </ComboBox>
+                        </Border>
+
+                    <ToggleButton Margin="0,0,26,0" VerticalAlignment="Center" HorizontalAlignment="Right"
+                                Foreground="{x:Static synth:Resources.ForegroundBrush}" FontWeight="UltraBlack" FontSize="9" IsChecked="{Binding ElementName=WindowRoot, Path=IsVerbose}" 
+                                SnapsToDevicePixels="True" Template="{x:Static synth:Resources.ToggleTemplate}"
+                                Visibility ="{Binding ElementName=WindowRoot, Path=KeepDetailsHidden, Converter={x:Static converters:ValueToVisibilityConverter.CollapsedWhenNotEqual}, ConverterParameter=False}">
+                        <ToggleButton.Style>
+                            <Style TargetType="ToggleButton" BasedOn="{x:Static synth:Resources.MouseOverEmphasisStyle}">
+                                <Setter Property="Content" Value="S H O W   D E T A I L S"/>
+                                <Style.Triggers>
+                                    <Trigger Property="IsChecked" Value="True">
+                                        <Setter Property="Content" Value="H I D E   D E T A I L S"/>
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </ToggleButton.Style>
+                    </ToggleButton>
+                    </Grid>
+                     <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Margin="6,0">
+                        <ContentControl Content="{TemplateBinding Content}" MaxWidth="1400" HorizontalAlignment="Center"/>
+                    </ScrollViewer>
+                <controls:BendModPanel Grid.Row="3" Grid.Column="0" Background="{x:Static synth:Resources.BackgroundBrush}" Foreground="{x:Static synth:Resources.ForegroundBrush}" Margin="2,-10,0,0"/>
+                    <controls:Keyboard x:Name="KeyPanel" Grid.Row="3" Grid.Column="1" HorizontalAlignment="Stretch" VerticalAlignment="Bottom"
+                            VelocityLabel="{Binding ElementName=WindowRoot, Path=VelocityLabel}" SustainLabel="{Binding ElementName=WindowRoot, Path=SustainLabel}"/>
+                </Grid>
+        </DataTemplate>
+    </Window.ContentTemplate>
+</Window>

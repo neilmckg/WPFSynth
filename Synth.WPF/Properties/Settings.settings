@@ -1,0 +1,15 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="Synth.WPF.Properties" GeneratedClassName="Settings">
+  <Profiles />
+  <Settings>
+    <Setting Name="ModulationAmount" Type="System.Double" Scope="User">
+      <Value Profile="(Default)">0.25</Value>
+    </Setting>
+    <Setting Name="KeyboardVelocity" Type="System.Double" Scope="User">
+      <Value Profile="(Default)">0.8</Value>
+    </Setting>
+    <Setting Name="ActiveInstrument" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Noble Lead</Value>
+    </Setting>
+  </Settings>
+</SettingsFile>

@@ -1,0 +1,641 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                    mc:Ignorable="d"
+                    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                    xmlns:sys="clr-namespace:System;assembly=mscorlib"
+                    xmlns:core="clr-namespace:Synth.Core;assembly=Synth.Core"
+                    xmlns:synth="clr-namespace:Synth.WPF"
+                    xmlns:c="clr-namespace:Synth.WPF.Controls"
+                    xmlns:v="clr-namespace:Synth.WPF.Converters"
+                    xmlns:m="clr-namespace:Synth.WPF.Modules"
+                    xmlns:ch="clr-namespace:Synth.WPF.ModuleChildren">
+
+    <Style TargetType="TextBlock" BasedOn="{x:Static synth:Resources.DefaultTextStyle}"/>
+    <Style TargetType="CheckBox" BasedOn="{x:Static synth:Resources.DefaultTextStyle}"/>
+    <Style TargetType="ListBox" BasedOn="{x:Static synth:Resources.DefaultTextStyle}"/>
+    <Style TargetType="ComboBox" BasedOn="{x:Static synth:Resources.DefaultTextStyle}"/>
+
+    <ControlTemplate x:Key="WavePickerTemplate" TargetType="Control">
+        <ListBox Background="Transparent" DisplayMemberPath="Name" BorderThickness="0" VerticalAlignment="Center"
+                        ItemsSource="{x:Static core:Wave.All}" SelectedItem="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=DataContext, Mode=TwoWay}"/>
+    </ControlTemplate>
+    
+    <sys:Double x:Key="PixelsPerEnvSecond">60</sys:Double>
+       
+    <ControlTemplate x:Key="ModuleNotImplementedTemplate" TargetType="m:Module">
+        <GroupBox Style="{x:Static synth:Resources.ModuleBoxStyle}">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Width="85" Background="Pink">
+            </StackPanel>
+        </GroupBox>
+    </ControlTemplate>
+
+    <ControlTemplate x:Key="AudioMeterModuleTemplate" TargetType="m:AudioMeter">
+        <GroupBox Style="{x:Static synth:Resources.ModuleBoxStyle}">
+            <GroupBox Header="Level" Style="{x:Static synth:Resources.InputColumnGroupBoxStyle}">
+                <c:MeterControl Style="{x:Static synth:Resources.MeterControlStyle}" MeterColor="{x:Static synth:Resources.AudioMeterColor}" Value="{Binding Level, Mode=OneWay}"/>
+            </GroupBox>
+        </GroupBox>
+    </ControlTemplate>
+
+    <ControlTemplate x:Key="EchoTemplate" TargetType="m:Echo">
+        <GroupBox Style="{x:Static synth:Resources.ModuleBoxStyle}">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                <GroupBox Header="Level" Style="{x:Static synth:Resources.InputColumnGroupBoxStyle}"
+                          IsEnabled="{Binding Converter={x:Static v:IsPropertyBoundToBooleanConverter.FalseIfBound}, ConverterParameter={x:Static m:Echo.LevelProperty}}">
+                    <c:MeteredSlider Style="{x:Static synth:Resources.ControlSliderStyle}"
+                            Minimum="0" Maximum="1"
+                            Value="{Binding Path=Level}" ScaleFactor="2" TicksSource="{x:Static synth:Resources.StandardLevelTicks}"/>
+                </GroupBox>
+
+                <GroupBox Header="Feedback" Style="{x:Static synth:Resources.InputColumnGroupBoxStyle}"
+                          IsEnabled="{Binding Converter={x:Static v:IsPropertyBoundToBooleanConverter.FalseIfBound}, ConverterParameter={x:Static m:Echo.FeedbackProperty}}">
+                    <c:MeteredSlider Style="{x:Static synth:Resources.ControlSliderStyle}"
+                            Minimum="0" Maximum="1"
+                            Value="{Binding Path=Feedback}" ScaleFactor="2" TicksSource="{x:Static synth:Resources.StandardLevelTicks}"/>
+                </GroupBox>
+
+                <GroupBox Header="Seconds" Style="{x:Static synth:Resources.InputColumnGroupBoxStyle}" ClipToBounds="False" HorizontalContentAlignment="Left"
+                            IsEnabled="{Binding Converter={x:Static v:IsPropertyBoundToBooleanConverter.FalseIfBound}, ConverterParameter={x:Static m:Echo.SecondsProperty}}" Width="60">
+                    <c:MeteredSlider Style="{x:Static synth:Resources.ControlSliderStyle}"
+                            Value="{Binding Path=Seconds}" ScaleFactor="2" ClipToBounds="False" HorizontalAlignment="Left"
+                            Minimum="0.1" Maximum="5">
+                        <c:SliderTick Value="0.1" Label="1/10 sec."/>
+                        <c:SliderTick Value="0.25" Label="1/4 sec."/>
+                        <c:SliderTick Value="0.5" Label="1/2 sec."/>
+                        <c:SliderTick Value="1" Label="1 sec."/>
+                        <c:SliderTick Value="2" Label=""/>
+                        <c:SliderTick Value="3" Label=""/>
+                        <c:SliderTick Value="4" Label=""/>
+                        <c:SliderTick Value="5" Label="5 sec."/>
+                    </c:MeteredSlider>
+                </GroupBox>
+            </StackPanel>
+        </GroupBox>
+    </ControlTemplate>
+
+    <DataTemplate x:Key="EnvelopeStepTemplate">
+        <Grid x:Name="fullHeight" Margin="0,0" HorizontalAlignment="Center">
+            <Canvas>
+                <Line Stroke="Gray" StrokeThickness="1.5"
+                    X1="0" 
+                    X2="{Binding ElementName=fullHeight, Path=ActualWidth}" 
+                    Y1="{Binding ElementName=prevTarget, Path=ActualHeight}"
+                    Y2="{Binding ElementName=currTarget, Path=ActualHeight}"/>
+            </Canvas>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Canvas Grid.Row="1" Height="{Binding ElementName=fullHeight, Path=ActualHeight}">
+                    <Canvas.LayoutTransform>
+                        <ScaleTransform ScaleY="{Binding RelativeSource={RelativeSource PreviousData}, Path=TargetValue, FallbackValue=0}"/>
+                    </Canvas.LayoutTransform>
+                </Canvas>
+                <Canvas x:Name="prevTarget" Grid.Row="0"/>
+            </Grid>
+
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Canvas Grid.Row="1" Height="{Binding ElementName=fullHeight, Path=ActualHeight}" Width="60">
+                    <Canvas.LayoutTransform>
+                        <ScaleTransform ScaleY="{Binding Path=TargetValue}" ScaleX="{Binding Seconds}"/>
+                    </Canvas.LayoutTransform>
+                </Canvas>
+                <Canvas x:Name="currTarget" Grid.Row="0"/>
+                <Grid Grid.Row="1" HorizontalAlignment="Right">
+                    <Ellipse Stroke="{x:Static synth:Resources.ForegroundBrush}" StrokeThickness="1.5" Height="8" Width="8" Margin="-4"  VerticalAlignment="Top" Fill="{x:Static synth:Resources.BackgroundBrush}" Cursor="Hand" RenderTransformOrigin="0.5,0.5">
+                        <Ellipse.RenderTransform>
+                            <ScaleTransform ScaleX="1" ScaleY="1"/>
+                        </Ellipse.RenderTransform>
+                        <Ellipse.Style>
+                            <Style TargetType="Ellipse">
+                                <Style.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Trigger.EnterActions>
+                                            <BeginStoryboard>
+                                                <Storyboard>
+                                                    <DoubleAnimation Storyboard.TargetProperty="(RenderTransform).(ScaleX)" To="1.67" Duration="0:0:0.1"/>
+                                                    <DoubleAnimation Storyboard.TargetProperty="(RenderTransform).(ScaleY)" To="1.67" Duration="0:0:0.1"/>
+                                                </Storyboard>
+                                            </BeginStoryboard>
+                                        </Trigger.EnterActions>
+                                        <Trigger.ExitActions>
+                                            <BeginStoryboard>
+                                                <Storyboard>
+                                                    <DoubleAnimation Storyboard.TargetProperty="(RenderTransform).(ScaleX)" To="1" Duration="0:0:0.1"/>
+                                                    <DoubleAnimation Storyboard.TargetProperty="(RenderTransform).(ScaleY)" To="1" Duration="0:0:0.1"/>
+                                                </Storyboard>
+                                            </BeginStoryboard>
+                                        </Trigger.ExitActions>
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Ellipse.Style>
+                    </Ellipse>
+                    <Rectangle Fill="{x:Static synth:Resources.ForegroundBrush}" Width="2" Margin="-1,4,-1,0"/>
+                </Grid>
+            </Grid>
+        </Grid>
+    </DataTemplate>
+
+    <ControlTemplate x:Key="EnvelopePhaseTemplate" TargetType="Control">
+        <Grid Name="SizeParent">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <Rectangle Grid.Row="1" Name="SizeRect" Visibility="Hidden" Height="{Binding ElementName=SizeParent, Path=ActualHeight}"  Width="{Binding TotalSeconds, Converter={x:Static v:MathConverter.Multiply}, ConverterParameter={StaticResource PixelsPerEnvSecond}}">
+                <Rectangle.Style>
+                    <Style TargetType="Rectangle">
+                        <Setter Property="Tag" Value="{Binding ParentEnvelope.TimeScale.Value, Mode=OneWay, Converter={x:Static v:ToDoubleConverter.Instance}}"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding Count}" Value="0">
+                                <Setter Property="Tag" Value="1"/>
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding Phase}" Value="Attack">
+                                <Setter Property="Width" Value="{Binding ParentEnvelope.TimeScale.Value}"/>
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding Phase}" Value="Release">
+                                <Setter Property="Width" Value="{Binding ParentEnvelope.TimeScale.Value}"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Rectangle.Style>
+                <Rectangle.LayoutTransform>
+                    <ScaleTransform ScaleX="{Binding ElementName=SizeRect, Path=Tag, FallbackValue=1, TargetNullValue=1}" ScaleY="{Binding ParentEnvelope.LevelScale.Value}"/>
+                </Rectangle.LayoutTransform>
+            </Rectangle>
+            <Path Grid.Row="1" Stretch="Fill" Data="{Binding Converter={x:Static v:EnvPhaseToGeometryConverter.Instance}}"
+                  Stroke="{x:Static synth:Resources.ForegroundBrush}" StrokeThickness="1.5" StrokeEndLineCap="Round" Fill="#4CFFFFFF"/>
+            <Grid Grid.Row="1" Width="10" Height="10" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,-4">
+                <Border CornerRadius="99" Background="{x:Static synth:Resources.BackgroundBrush}" Opacity="0.5" Margin="-1"/>
+                <TextBlock Text="{TemplateBinding Tag}" FontWeight="Bold" FontSize="10" Foreground="{x:Static synth:Resources.ForegroundBrush}"
+                           HorizontalAlignment="Center" VerticalAlignment="Center" Margin="-20,-21,-20,-19"/>
+            </Grid>
+            <Grid Grid.RowSpan="99" Grid.ColumnSpan="99">
+                <Grid.Background>
+                    <VisualBrush TileMode="Tile" Stretch="None" Viewport="0,0,60,60" ViewportUnits="Absolute" >
+                        <VisualBrush.Visual>
+                            <Border Background="Transparent" Width="{StaticResource PixelsPerEnvSecond}" Height="60">
+                                <Grid>
+                                    <Line Stroke="{x:Static synth:Resources.ForegroundBrush}" StrokeThickness="1" X1="30" X2="30" Y1="0" Y2="60" StrokeDashArray="1,2" Opacity="0.3"/>
+                                    <Line Stroke="{x:Static synth:Resources.ForegroundBrush}" StrokeThickness="1" X1="60" X2="60" Y1="0" Y2="60" StrokeDashArray="1,2"/>
+                                </Grid>
+                            </Border>
+                        </VisualBrush.Visual>
+                    </VisualBrush>
+                </Grid.Background>
+            </Grid>
+        </Grid>
+    </ControlTemplate>
+
+    <ControlTemplate x:Key="EnvelopeTemplate" TargetType="m:Envelope">
+        <GroupBox Style="{x:Static synth:Resources.ModuleBoxStyle}">
+            <Grid>
+                <Ellipse Style="{x:Static synth:Resources.TriggerIndicatorStyle}" IsEnabled="{TemplateBinding Trigger}"/>
+
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                    <Grid Margin="0,6,6,3" Width="150">
+                        <Border BorderBrush="{x:Static synth:Resources.ForegroundBrush}" BorderThickness="0,0,0,1" VerticalAlignment="Bottom" IsHitTestVisible="False" Margin="0,0,0,32"/>
+                        <ScrollViewer VerticalScrollBarVisibility="Disabled" HorizontalScrollBarVisibility="Auto" Margin="0,0,0,0">
+                            <Grid Margin="0,0,0,0">
+                                <StackPanel Orientation="Horizontal" Margin="0,0,8,0" Height="122" VerticalAlignment="Top">
+                                    <Control DataContext="{Binding Attack, RelativeSource={RelativeSource FindAncestor, AncestorType=m:Envelope}, Mode=OneWay}" Template="{StaticResource EnvelopePhaseTemplate}" Margin="0,0,-1,0" Tag="A"/>
+                                    <Border Background="{x:Static synth:Resources.ForegroundBrush}" Width="1" HorizontalAlignment="Right" Margin="-0.5,0"/>
+                                    <Control DataContext="{Binding Loop, RelativeSource={RelativeSource FindAncestor, AncestorType=m:Envelope}, Mode=OneWay}" Template="{StaticResource EnvelopePhaseTemplate}" Margin="-1,0,-1,0" Tag="L"/>
+                                    <Border Background="{x:Static synth:Resources.ForegroundBrush}" Width="1" HorizontalAlignment="Right" Margin="-0.5,0"/>
+                                    <Control DataContext="{Binding Release, RelativeSource={RelativeSource FindAncestor, AncestorType=m:Envelope}, Mode=OneWay}" Template="{StaticResource EnvelopePhaseTemplate}" Margin="-1,0,0,0" Tag="R"/>
+                                </StackPanel>
+                            </Grid>
+                        </ScrollViewer>
+                    </Grid>
+                    <GroupBox Header="Level" Style="{x:Static synth:Resources.InputColumnGroupBoxStyle}"
+                              IsEnabled="{Binding Converter={x:Static v:IsPropertyBoundToBooleanConverter.FalseIfBound}, ConverterParameter={x:Static m:Envelope.LevelScaleProperty}}">
+                        <c:MeteredSlider Style="{x:Static synth:Resources.ControlSliderStyle}"
+                                Minimum="0" Maximum="1"
+                                Value="{Binding Path=LevelScale}" ScaleFactor="2" TicksSource="{x:Static synth:Resources.StandardLevelTicks}"/>
+                    </GroupBox>
+
+                    <GroupBox Header="Time" Style="{x:Static synth:Resources.InputColumnGroupBoxStyle}"
+                              IsEnabled="{Binding Converter={x:Static v:IsPropertyBoundToBooleanConverter.FalseIfBound}, ConverterParameter={x:Static m:Envelope.TimeScaleProperty}}">
+                        <c:MeteredSlider Style="{x:Static synth:Resources.ControlSliderStyle}" 
+                                Value="{Binding Path=TimeScale}" ScaleFactor="3"
+                                Minimum="0.125" Maximum="10">
+                            <c:SliderTick Value="10" Label="10x"/>
+                            <c:SliderTick Value="4" Label="4x"/>
+                            <c:SliderTick Value="2" Label="2x"/>
+                            <c:SliderTick Value="1" Label="1x"/>
+                            <c:SliderTick Value="0.5" Label="1/2x"/>
+                            <c:SliderTick Value="0.25" Label="1/4x"/>
+                            <c:SliderTick Value="0.125" Label="1/8x"/>
+                        </c:MeteredSlider>
+                    </GroupBox>
+                </StackPanel>
+            </Grid>
+        </GroupBox>
+    </ControlTemplate>
+
+    <ControlTemplate x:Key="FaderTemplate" TargetType="m:Fader">
+        <GroupBox Style="{x:Static synth:Resources.ModuleBoxStyle}">
+            <GroupBox Header="Level" Style="{x:Static synth:Resources.InputColumnGroupBoxStyle}"
+                      IsEnabled="{Binding Converter={x:Static v:IsPropertyBoundToBooleanConverter.FalseIfBound}, ConverterParameter={x:Static m:Fader.LevelProperty}}">
+                <c:MeteredSlider Style="{x:Static synth:Resources.ControlSliderStyle}"
+                        Minimum="0" Maximum="1"
+                        Value="{Binding Path=Level}" ScaleFactor="2" TicksSource="{x:Static synth:Resources.StandardLevelTicks}"/>
+            </GroupBox>
+        </GroupBox>
+    </ControlTemplate>
+
+    <ControlTemplate x:Key="FuzzTemplate" TargetType="m:Fuzz">
+        <GroupBox Style="{x:Static synth:Resources.ModuleBoxStyle}">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                <GroupBox Header="Amount" Style="{x:Static synth:Resources.InputColumnGroupBoxStyle}"
+                          IsEnabled="{Binding Converter={x:Static v:IsPropertyBoundToBooleanConverter.FalseIfBound}, ConverterParameter={x:Static m:Fuzz.AmountProperty}}">
+                    <c:MeteredSlider Style="{x:Static synth:Resources.ControlSliderStyle}"
+                            Minimum="0" Maximum="1"
+                            Value="{Binding Path=Amount}" ScaleFactor="2" TicksSource="{x:Static synth:Resources.StandardLevelTicks}"/>
+                </GroupBox>
+            </StackPanel>
+        </GroupBox>
+    </ControlTemplate>
+
+    <ControlTemplate x:Key="GlideTemplate" TargetType="m:Glide">
+        <GroupBox Style="{x:Static synth:Resources.ModuleBoxStyle}">
+            <Grid>
+                <Ellipse Style="{x:Static synth:Resources.TriggerIndicatorStyle}" 
+                         IsEnabled="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=IsActive}"/>
+                
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                    <GroupBox Header="Rate" Style="{x:Static synth:Resources.InputColumnGroupBoxStyle}" HorizontalContentAlignment="Left"
+                              IsEnabled="{Binding Converter={x:Static v:IsPropertyBoundToBooleanConverter.FalseIfBound}, ConverterParameter={x:Static m:Glide.RateProperty}}">
+                        <c:MeteredSlider Style="{x:Static synth:Resources.ControlSliderStyle}"
+                                Minimum="0" Maximum="1"
+                                Value="{Binding Path=Rate}" ScaleFactor="1">
+                            <c:SliderTick Value="0" Label="Min"/>
+                            <c:SliderTick Value="0.1" Label=""/>
+                            <c:SliderTick Value="0.2" Label=""/>
+                            <c:SliderTick Value="0.3" Label=""/>
+                            <c:SliderTick Value="0.4" Label=""/>
+                            <c:SliderTick Value="0.5" Label=""/>
+                            <c:SliderTick Value="0.6" Label=""/>
+                            <c:SliderTick Value="0.7" Label=""/>
+                            <c:SliderTick Value="0.8" Label=""/>
+                            <c:SliderTick Value="0.9" Label=""/>
+                            <c:SliderTick Value="1" Label="Off"/>
+                        </c:MeteredSlider>
+                    </GroupBox>
+                </StackPanel>
+            </Grid>
+        </GroupBox>
+    </ControlTemplate>
+    
+    <ControlTemplate x:Key="HostModuleTemplate" TargetType="m:HostModule">
+        <Grid>
+            <ContentControl Style="{x:Static synth:Resources.VerboseOnlyStyle}">
+                <Border BorderThickness="2" BorderBrush="Gray" Margin="-1,4,-1,1" Background="#32FFFFFF" CornerRadius="14,14,8,8"/>
+            </ContentControl>
+
+            <StackPanel Orientation="Horizontal">
+                <ContentPresenter ContentTemplate="{TemplateBinding InputTemplate}"/>
+                <ContentControl Content="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=Content}" 
+                                Style="{x:Static synth:Resources.VerboseOnlyStyle}"/>
+            </StackPanel>
+        </Grid>
+    </ControlTemplate>
+
+    <ControlTemplate x:Key="LFOTemplate" TargetType="m:LFO">
+        <GroupBox Style="{x:Static synth:Resources.ModuleBoxStyle}">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+
+                <GroupBox Header="Amount" Style="{x:Static synth:Resources.InputColumnGroupBoxStyle}"
+                          IsEnabled="{Binding Converter={x:Static v:IsPropertyBoundToBooleanConverter.FalseIfBound}, ConverterParameter={x:Static m:LFO.AmountProperty}}">
+                    <Grid>
+                        <c:MeteredSlider Style="{x:Static synth:Resources.ControlSliderStyle}"
+                                Minimum="0" Maximum="1"
+                                Value="{Binding Path=Amount}" ScaleFactor="2" TicksSource="{x:Static synth:Resources.StandardLevelTicks}"/>
+                    </Grid>
+                </GroupBox>
+
+                <GroupBox Header="Freq (hz)" Style="{x:Static synth:Resources.InputColumnGroupBoxStyle}"
+                          IsEnabled="{Binding Converter={x:Static v:IsPropertyBoundToBooleanConverter.FalseIfBound}, ConverterParameter={x:Static m:LFO.FrequencyProperty}}">
+                    <c:MeteredSlider Style="{x:Static synth:Resources.ControlSliderStyle}"
+                            Value="{Binding Path=Frequency}" ScaleFactor="2"
+                            Minimum="0.1" Maximum="10">
+                        <c:SliderTick Value="10" Label="10"/>
+                        <c:SliderTick Value="9" Label=""/>
+                        <c:SliderTick Value="8" Label=""/>
+                        <c:SliderTick Value="7" Label=""/>
+                        <c:SliderTick Value="6" Label=""/>
+                        <c:SliderTick Value="5" Label="5"/>
+                        <c:SliderTick Value="4" Label=""/>
+                        <c:SliderTick Value="3" Label=""/>
+                        <c:SliderTick Value="2" Label=""/>
+                        <c:SliderTick Value="1" Label=""/>
+                        <c:SliderTick Value="0" Label="Min"/>
+                    </c:MeteredSlider>
+                </GroupBox>
+
+                <GroupBox Header="Wave" Width="Auto" Style="{x:Static synth:Resources.InputColumnGroupBoxStyle}"
+                          IsEnabled="{Binding Converter={x:Static v:IsPropertyBoundToBooleanConverter.FalseIfBound}, ConverterParameter={x:Static m:LFO.WaveProperty}}">
+                    <Control DataContext="{Binding Wave, Mode=TwoWay}" Template="{StaticResource WavePickerTemplate}"/>
+                </GroupBox>
+            </StackPanel>
+        </GroupBox>
+    </ControlTemplate>
+    
+    <ControlTemplate x:Key="LPFTemplate" TargetType="m:LowPassFilter">
+        <GroupBox Style="{x:Static synth:Resources.ModuleBoxStyle}">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                <GroupBox Header="Cut-off" Style="{x:Static synth:Resources.InputColumnGroupBoxStyle}"
+                          IsEnabled="{Binding Converter={x:Static v:IsPropertyBoundToBooleanConverter.FalseIfBound}, ConverterParameter={x:Static m:LowPassFilter.CutoffPitchProperty}}">
+                    <c:MeteredSlider Style="{x:Static synth:Resources.ControlSliderStyle}"
+                        Minimum="0" Maximum="1"
+                        Value="{Binding Path=CutoffPitch}" TicksSource="{x:Static synth:Resources.PitchRangeTicks}"/>
+                </GroupBox>
+
+                <GroupBox Header="Resonance" Style="{x:Static synth:Resources.InputColumnGroupBoxStyle}"
+                          IsEnabled="{Binding Converter={x:Static v:IsPropertyBoundToBooleanConverter.FalseIfBound}, ConverterParameter={x:Static m:LowPassFilter.ResonanceProperty}}">
+                    <c:MeteredSlider
+                            Style="{x:Static synth:Resources.ControlSliderStyle}"
+                            ScaleFactor="1"
+                            Minimum="0" Maximum="1"
+                            Value="{Binding Path=Resonance}">
+                        <c:SliderTick Value="1" Label="Max"/>
+                        <c:SliderTick Value="0.9" Label=""/>
+                        <c:SliderTick Value="0.8" Label=""/>
+                        <c:SliderTick Value="0.7" Label=""/>
+                        <c:SliderTick Value="0.6" Label=""/>
+                        <c:SliderTick Value="0.5" Label=""/>
+                        <c:SliderTick Value="0.4" Label=""/>
+                        <c:SliderTick Value="0.3" Label=""/>
+                        <c:SliderTick Value="0.2" Label=""/>
+                        <c:SliderTick Value="0.1" Label=""/>
+                        <c:SliderTick Value="0" Label="Min"/>
+                    </c:MeteredSlider>
+                </GroupBox>
+            </StackPanel>
+        </GroupBox>
+    </ControlTemplate>
+
+    <DataTemplate x:Key="MixerChannelTemplate">
+        <GroupBox Header="{Binding ChannelName}" Width="{x:Static synth:Resources.DefaultInputColumnWidth}" Template="{x:Static synth:Resources.InputColumnTemplate}" VerticalContentAlignment="Stretch">
+            <Grid x:Name="SliderParent">
+                <c:MeteredSlider Grid.Row="0" Style="{x:Static synth:Resources.ControlSliderStyle}"
+                        Minimum="{x:Static ch:Channel.MinimumLevel}" Maximum="{x:Static ch:Channel.MaximumLevel}"
+                        Value="{Binding Level}" ScaleFactor="2" TicksSource="{x:Static synth:Resources.StandardLevelTicks}"/>
+            </Grid>
+        </GroupBox>
+    </DataTemplate>
+
+    <ControlTemplate x:Key="MixerTemplate" TargetType="m:Mixer">
+        <GroupBox Style="{x:Static synth:Resources.ModuleBoxShyStyle}">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+
+                <ItemsControl ItemsSource="{Binding Channels}" ItemTemplate="{StaticResource MixerChannelTemplate}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <StackPanel Orientation="Horizontal"/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                </ItemsControl>
+
+                <Rectangle Fill="Gray" Width="1" Margin="10,4,10,33"/>
+
+                <GroupBox Header="Master" Style="{x:Static synth:Resources.InputColumnGroupBoxStyle}"
+                          IsEnabled="{Binding Converter={x:Static v:IsPropertyBoundToBooleanConverter.FalseIfBound}, ConverterParameter={x:Static m:Mixer.MasterLevelProperty}}">
+                    <c:MeteredSlider Style="{x:Static synth:Resources.ControlSliderStyle}"
+                            Minimum="0" Maximum="1"
+                            Value="{Binding Path=MasterLevel}" ScaleFactor="2" TicksSource="{x:Static synth:Resources.StandardLevelTicks}"/>
+                </GroupBox>
+            </StackPanel>
+        </GroupBox>
+    </ControlTemplate>
+
+    <ControlTemplate x:Key="NoiseTemplate" TargetType="m:Noise">
+        <GroupBox Style="{x:Static synth:Resources.ModuleBoxStyle}">
+            <GroupBox Header="Level" Style="{x:Static synth:Resources.InputColumnGroupBoxStyle}"
+                      IsEnabled="{Binding Converter={x:Static v:IsPropertyBoundToBooleanConverter.FalseIfBound}, ConverterParameter={x:Static m:Noise.LevelProperty}}">
+                <c:MeteredSlider Style="{x:Static synth:Resources.ControlSliderStyle}"
+                        Minimum="0" Maximum="1"
+                        Value="{Binding Path=Level}" ScaleFactor="2" TicksSource="{x:Static synth:Resources.StandardLevelTicks}"/>
+            </GroupBox>
+        </GroupBox>
+    </ControlTemplate>
+
+    <ControlTemplate x:Key="OscillatorTemplate" TargetType="m:Oscillator">
+        <GroupBox Style="{x:Static synth:Resources.ModuleBoxStyle}">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                <GroupBox Header="Level" Style="{x:Static synth:Resources.InputColumnGroupBoxStyle}"
+                        IsEnabled="{Binding Converter={x:Static v:IsPropertyBoundToBooleanConverter.FalseIfBound}, ConverterParameter={x:Static m:Oscillator.LevelProperty}}">
+                    <c:MeteredSlider Style="{x:Static synth:Resources.ControlSliderStyle}"
+                        Minimum="0" Maximum="1"
+                        Value="{Binding Path=Level}" ScaleFactor="2" TicksSource="{x:Static synth:Resources.StandardLevelTicks}"/>
+                </GroupBox>
+
+                <GroupBox Header="Pitch" Style="{x:Static synth:Resources.InputColumnGroupBoxStyle}"
+                        IsEnabled="{Binding Converter={x:Static v:IsPropertyBoundToBooleanConverter.FalseIfBound}, ConverterParameter={x:Static m:Oscillator.PitchProperty}}">
+                    <c:MeteredSlider Style="{x:Static synth:Resources.ControlSliderStyle}"
+                        Minimum="0" Maximum="1"
+                        Value="{Binding Path=Pitch}" TicksSource="{x:Static synth:Resources.PitchRangeTicks}"/>
+                </GroupBox>
+
+                <GroupBox Header="Detune" Style="{x:Static synth:Resources.InputColumnGroupBoxStyle}"
+                        IsEnabled="{Binding Converter={x:Static v:IsPropertyBoundToBooleanConverter.FalseIfBound}, ConverterParameter={x:Static m:Oscillator.PitchOffsetHalfStepsProperty}}">
+                    <c:MeteredSlider Style="{x:Static synth:Resources.ControlSliderStyle}"
+                        Value="{Binding Path=PitchOffsetHalfSteps}"
+                        Minimum="-24" Maximum="24">
+                        <c:SliderTick Value="-24" Label="-2"/>
+                        <c:SliderTick Value="-23" Label=""/>
+                        <c:SliderTick Value="-22" Label=""/>
+                        <c:SliderTick Value="-21" Label=""/>
+                        <c:SliderTick Value="-20" Label=""/>
+                        <c:SliderTick Value="-19" Label=""/>
+                        <c:SliderTick Value="-18" Label=""/>
+                        <c:SliderTick Value="-17" Label=""/>
+                        <c:SliderTick Value="-16" Label=""/>
+                        <c:SliderTick Value="-15" Label=""/>
+                        <c:SliderTick Value="-14" Label=""/>
+                        <c:SliderTick Value="-13" Label=""/>
+                        <c:SliderTick Value="-12" Label="-1"/>
+                        <c:SliderTick Value="-11" Label=""/>
+                        <c:SliderTick Value="-10" Label=""/>
+                        <c:SliderTick Value="-9" Label=""/>
+                        <c:SliderTick Value="-8" Label=""/>
+                        <c:SliderTick Value="-7" Label=""/>
+                        <c:SliderTick Value="-6" Label=""/>
+                        <c:SliderTick Value="-5" Label=""/>
+                        <c:SliderTick Value="-4" Label=""/>
+                        <c:SliderTick Value="-3" Label=""/>
+                        <c:SliderTick Value="-2" Label=""/>
+                        <c:SliderTick Value="-1" Label=""/>
+                        <c:SliderTick Value="0" Label="0"/>
+                        <c:SliderTick Value="1" Label=""/>
+                        <c:SliderTick Value="2" Label=""/>
+                        <c:SliderTick Value="3" Label=""/>
+                        <c:SliderTick Value="4" Label=""/>
+                        <c:SliderTick Value="5" Label=""/>
+                        <c:SliderTick Value="6" Label=""/>
+                        <c:SliderTick Value="7" Label=""/>
+                        <c:SliderTick Value="8" Label=""/>
+                        <c:SliderTick Value="9" Label=""/>
+                        <c:SliderTick Value="10" Label=""/>
+                        <c:SliderTick Value="11" Label=""/>
+                        <c:SliderTick Value="12" Label="+1"/>
+                        <c:SliderTick Value="13" Label=""/>
+                        <c:SliderTick Value="14" Label=""/>
+                        <c:SliderTick Value="15" Label=""/>
+                        <c:SliderTick Value="16" Label=""/>
+                        <c:SliderTick Value="17" Label=""/>
+                        <c:SliderTick Value="18" Label=""/>
+                        <c:SliderTick Value="19" Label=""/>
+                        <c:SliderTick Value="20" Label=""/>
+                        <c:SliderTick Value="21" Label=""/>
+                        <c:SliderTick Value="22" Label=""/>
+                        <c:SliderTick Value="23" Label=""/>
+                        <c:SliderTick Value="24" Label="+2"/>
+                    </c:MeteredSlider>
+                </GroupBox>
+
+                <GroupBox Header="Wave" Width="Auto" Style="{x:Static synth:Resources.InputColumnGroupBoxStyle}"
+                        IsEnabled="{Binding Converter={x:Static v:IsPropertyBoundToBooleanConverter.FalseIfBound}, ConverterParameter={x:Static m:Oscillator.WaveProperty}}">
+                    <Control DataContext="{Binding Wave, Mode=TwoWay}" Template="{StaticResource WavePickerTemplate}"/>
+                </GroupBox>
+            </StackPanel>
+        </GroupBox>
+    </ControlTemplate>
+
+    <ControlTemplate x:Key="PanTemplate" TargetType="m:Pan">
+        <GroupBox Style="{x:Static synth:Resources.ModuleBoxStyle}">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                <GroupBox Header="Spread" Style="{x:Static synth:Resources.InputColumnGroupBoxStyle}" Margin="0,0,8,0"
+                          IsEnabled="{Binding Converter={x:Static v:IsPropertyBoundToBooleanConverter.FalseIfBound}, ConverterParameter={x:Static m:Pan.SpreadProperty}}">
+                    <c:MeteredSlider Style="{x:Static synth:Resources.ControlSliderStyle}"
+                            Value="{Binding Path=Spread}"
+                            Minimum="-1" Maximum="1">
+                        <c:SliderTick Value="-1" Label="Invert"/>
+                        <c:SliderTick Value="0" Label="Mono"/>
+                        <c:SliderTick Value="1" Label="Norm"/>
+                    </c:MeteredSlider>
+                </GroupBox>
+
+                <GroupBox  Header="Position" Style="{x:Static synth:Resources.InputColumnGroupBoxStyle}"
+                           IsEnabled="{Binding Converter={x:Static v:IsPropertyBoundToBooleanConverter.FalseIfBound}, ConverterParameter={x:Static m:Pan.PositionProperty}}">
+                    <c:MeteredSlider Style="{x:Static synth:Resources.ControlSliderStyle}"
+                            Value="{Binding Path=Position}"
+                            Minimum="-1" Maximum="1">
+                        <c:SliderTick Value="-1" Label="L"/>
+                        <c:SliderTick Value="0" Label=""/>
+                        <c:SliderTick Value="1" Label="R"/>
+                    </c:MeteredSlider>
+                </GroupBox>
+            </StackPanel>
+        </GroupBox>
+    </ControlTemplate>
+
+    <ControlTemplate x:Key="TranslateTemplate" TargetType="m:Translate">
+
+        <GroupBox Style="{x:Static synth:Resources.ModuleBoxStyle}">
+
+            <Grid Margin="3,4"  Width="90" ClipToBounds="True">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="8"/>
+                    <RowDefinition Height="Auto" MinHeight="12"/>
+                </Grid.RowDefinitions>
+
+                <StackPanel Grid.Row="0" Orientation="Vertical">
+                    <Grid>
+                        <TextBlock Text="Source" HorizontalAlignment="Left"/>
+                        <TextBox TextAlignment="Center" Text="{Binding SourceValue, StringFormat=0.0000, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Right" Background="Transparent" Width="42">
+                            <TextBox.Style>
+                                <Style TargetType="TextBox" BasedOn="{x:Static synth:Resources.DefaultTextStyle}">
+                                    <Setter Property="BorderBrush" Value="Transparent"/>
+                                    <Setter Property="IsReadOnly" Value="True"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Converter={x:Static v:IsPropertyBoundToBooleanConverter.TrueIfBound}, ConverterParameter={x:Static m:Translate.SourceValueProperty}}" Value="False">
+                                            <Setter Property="BorderBrush" Value="{x:Static synth:Resources.ForegroundBrush}"/>
+                                            <Setter Property="IsReadOnly" Value="False"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBox.Style>
+                        </TextBox>
+                    </Grid>
+
+                    <Rectangle Fill="Gray" Height="1" Margin="0,4"/>
+
+                    <Grid>
+                        <TextBlock Text="Scale" HorizontalAlignment="Left"/>
+                        <TextBox TextAlignment="Center" Text="{Binding Scale, StringFormat=0.0000, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Right" Background="Transparent" Width="42">
+                            <TextBox.Style>
+                                <Style TargetType="TextBox" BasedOn="{x:Static synth:Resources.DefaultTextStyle}">
+                                    <Setter Property="BorderBrush" Value="Transparent"/>
+                                    <Setter Property="IsReadOnly" Value="True"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Converter={x:Static v:IsPropertyBoundToBooleanConverter.TrueIfBound}, ConverterParameter={x:Static m:Translate.ScaleProperty}}" Value="False">
+                                            <Setter Property="BorderBrush" Value="{x:Static synth:Resources.ForegroundBrush}"/>
+                                            <Setter Property="IsReadOnly" Value="False"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBox.Style>
+                        </TextBox>
+                    </Grid>
+
+                    <Grid>
+                        <TextBlock Text="Offset" HorizontalAlignment="Left"/>
+                        <TextBox TextAlignment="Center" Text="{Binding Center, StringFormat=0.0000, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Right" Background="Transparent" Width="42">
+                            <TextBox.Style>
+                                <Style TargetType="TextBox" BasedOn="{x:Static synth:Resources.DefaultTextStyle}">
+                                    <Setter Property="BorderBrush" Value="Transparent"/>
+                                    <Setter Property="IsReadOnly" Value="True"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Converter={x:Static v:IsPropertyBoundToBooleanConverter.TrueIfBound}, ConverterParameter={x:Static m:Translate.CenterProperty}}" Value="False">
+                                            <Setter Property="BorderBrush" Value="{x:Static synth:Resources.ForegroundBrush}"/>
+                                            <Setter Property="IsReadOnly" Value="False"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBox.Style>
+                        </TextBox>
+                    </Grid>
+
+                    <Grid>
+                        <TextBlock Text="Curvature" HorizontalAlignment="Left"/>
+                        <TextBox TextAlignment="Center" Text="{Binding Curvature, StringFormat=0.0000, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Right" Background="Transparent" Width="42">
+                            <TextBox.Style>
+                                <Style TargetType="TextBox" BasedOn="{x:Static synth:Resources.DefaultTextStyle}">
+                                    <Setter Property="BorderBrush" Value="Transparent"/>
+                                    <Setter Property="IsReadOnly" Value="True"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Converter={x:Static v:IsPropertyBoundToBooleanConverter.TrueIfBound}, ConverterParameter={x:Static m:Translate.CurvatureProperty}}" Value="False">
+                                            <Setter Property="BorderBrush" Value="{x:Static synth:Resources.ForegroundBrush}"/>
+                                            <Setter Property="IsReadOnly" Value="False"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBox.Style>
+                        </TextBox>
+                    </Grid>
+                </StackPanel>
+
+                <Grid Grid.Row="2">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="50"/>
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Grid.Column="0" Text="=" HorizontalAlignment="Right"/>
+                    <TextBlock Grid.Column="1" Text="{Binding Value, StringFormat='0.0000'}" HorizontalAlignment="Right" Margin="6,0"/>
+                </Grid>
+            </Grid>
+        </GroupBox>
+    </ControlTemplate>
+
+</ResourceDictionary>
